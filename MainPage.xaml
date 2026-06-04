@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HeartRateBroadcaster.MainPage"
+             BackgroundColor="#1C1C1E">
+
+    <Grid RowDefinitions="*,Auto,*"
+          Padding="20"
+          VerticalOptions="Center">
+
+        <!-- Status Text -->
+        <VerticalStackLayout Grid.Row="0"
+                             Spacing="8"
+                             VerticalOptions="End"
+                             Margin="0,0,0,20">
+            <Label x:Name="StatusLabel"
+                   Text="Ready"
+                   FontSize="16"
+                   TextColor="#8E8E93"
+                   HorizontalOptions="Center" />
+            <Label x:Name="DetailLabel"
+                   Text="Tap switch to start broadcasting"
+                   FontSize="12"
+                   TextColor="#636366"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <!-- Heart Rate Display -->
+        <VerticalStackLayout Grid.Row="1"
+                             Spacing="4">
+            <HorizontalStackLayout HorizontalOptions="Center"
+                                   Spacing="4">
+                <Label x:Name="HeartRateValue"
+                       Text="--"
+                       FontSize="72"
+                       FontAttributes="Bold"
+                       TextColor="#FF3B30"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+                <Label Text="BPM"
+                       FontSize="20"
+                       TextColor="#FF3B30"
+                       VerticalOptions="End"
+                       Margin="0,0,0,16" />
+            </HorizontalStackLayout>
+
+            <!-- Switch -->
+            <Switch x:Name="BroadcastSwitch"
+                    HorizontalOptions="Center"
+                    Margin="0,20,0,0"
+                    Toggled="OnSwitchToggled"
+                    OnColor="#34C759"
+                    ThumbColor="#FFFFFF" />
+
+            <Label x:Name="SwitchLabel"
+                   Text="Broadcast OFF"
+                   FontSize="14"
+                   TextColor="#8E8E93"
+                   HorizontalOptions="Center"
+                   Margin="0,8,0,0" />
+        </VerticalStackLayout>
+
+        <!-- Bottom Info -->
+        <VerticalStackLayout Grid.Row="2"
+                             VerticalOptions="End"
+                             Spacing="4"
+                             Margin="0,20,0,0">
+            <Label x:Name="BleStatusLabel"
+                   Text="BLE: Idle"
+                   FontSize="12"
+                   TextColor="#48484A"
+                   HorizontalOptions="Center" />
+            <Label Text="Heart Rate Broadcaster v1.0"
+                   FontSize="10"
+                   TextColor="#3A3A3C"
+                   HorizontalOptions="Center"
+                   Margin="0,4,0,0" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

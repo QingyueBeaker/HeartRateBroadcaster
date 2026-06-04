@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.oppo.hrbroadcast"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <!-- Android permissions -->
+
+    <!-- Bluetooth permissions -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- Location permission (required for BLE scan on older Android) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Foreground service permission -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.BODY_SENSORS" />
+	
+    <!-- Wake lock to keep CPU running during broadcast -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Hardware features -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+    <uses-feature android:name="android.hardware.sensor.heart_rate" android:required="true" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/appicon"
+        android:roundIcon="@mipmap/appicon_round"
+        android:label="HR Broadcast"
+        android:supportsRtl="true">
+
+
+        <!-- Foreground service for heart rate reading -->
+        <service
+            android:name=".HeartRateService"
+            android:enabled="true"
+            android:exported="false"
+            />
+
+        <!-- BLE Advertiser service -->
+        <service
+            android:name=".BleHrAdvertiserService"
+            android:enabled="true"
+            android:exported="false" />
+
+    </application>
+
+</manifest>
