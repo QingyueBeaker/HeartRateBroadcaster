@@ -1,205 +1,127 @@
-# OPPO Watch X Heart Rate Broadcaster
-
-.NET MAUI Android App for OPPO Watch X that reads optical heart rate sensor data and broadcasts it via standard BLE GATT Heart Rate Service.
-
-## Features
-
-- **Heart Rate Reading**: Uses Android `SensorManager.TYPE_HEART_RATE` to read PPG sensor data
-- **BLE GATT Peripheral**: Broadcasts standard Heart Rate Service (`0x180D`) with Heart Rate Measurement characteristic (`0x2A37`)
-- **Data Format**: Compliant with Bluetooth SIG Heart Rate Service specification
-- **Background Operation**: Foreground service keeps broadcasting even when screen is off
-- **Minimal UI**: Single switch to start/stop, real-time heart rate display
-
-## Project Structure
-
-```
+HeartRateBroadcaster
+Turn your OPPO Watch X into a standard BLE heart rate strap that any sports app can receive
+Overview
+HeartRateBroadcaster is a minimal Android app for the OPPO Watch X (and any Android watch with a built-in PPG heart rate sensor). It reads real-time heart rate data from the optical sensor and broadcasts it via BLE GATT Peripheral mode using the standard Bluetooth Heart Rate Service.
+Your watch becomes a virtual HR chest strap. Any sports app, bike computer, or fitness software that supports the standard BLE heart rate protocol can discover and receive HR data directly - no pairing, no companion app, no account, no cloud.
+Compatible Receivers
+The following apps/devices can directly discover and receive HR data from this app:
+•Bike Computers: Wahoo, Garmin, Bryton, Xplova
+•Indoor Training: Zwift, TrainerRoad, Peloton
+•Running/Fitness: Strava, Nike Run Club, Keep
+•Debug Tools: nRF Connect (recommended for testing)
+•Others: Any device supporting the Bluetooth LE Heart Rate Profile
+Features
+•Reads optical heart rate sensor via SensorManager.TYPE_HEART_RATE
+•Broadcasts as BLE Peripheral with standard Heart Rate Service (0x180D)
+•Data format compliant with official Bluetooth SIG specification
+•Background operation with screen off (Foreground Service + WakeLock)
+•Minimal UI: one toggle switch + live heart rate value
+•Fallback simulation mode when sensor is unavailable (60-120 BPM random)
+Requirements
+Item	Requirement
+Device	OPPO Watch X or any Android watch with PPG heart rate sensor
+OS	Android 11+ (API 30+)
+Bluetooth	BLE 4.2+ with Advertising support
+Architecture	armeabi-v7a (android-arm)
+Tech Stack
+Technology	Description
+.NET 10 MAUI	Cross-platform mobile framework
+C#	Entire codebase in C#
+Android APIs	SensorManager, BluetoothGattServer, BluetoothLeAdvertiser
+Project Structure
 HeartRateBroadcaster/
-├── HeartRateBroadcaster.csproj    # Project file
-├── MauiProgram.cs                 # MAUI app entry point
-├── App.xaml / App.xaml.cs         # Application class
-├── AppShell.xaml / AppShell.xaml.cs  # Shell navigation
-├── MainPage.xaml / MainPage.xaml.cs  # Main UI (toggle + HR display)
-├── Platforms/
-│   └── Android/
-│       ├── AndroidManifest.xml    # Permissions & service declarations
-│       ├── MainActivity.cs        # Activity with permission requests
-│       ├── MainApplication.cs     # MAUI application
-│       └── Services/
-│           ├── HeartRateService.cs      # Foreground service + sensor reading
-│           └── BleHrAdvertiserService.cs # BLE GATT peripheral + broadcaster
-└── Resources/
-    ├── AppIcon/appicon.svg
-    ├── Splash/splash.svg
-    └── Styles/
-        ├── Colors.xaml
-        └── Styles.xaml
-```
-
-## Prerequisites
-
-### Required
-
-- **Visual Studio 2022** (Windows) or **JetBrains Rider**
-- **.NET 8.0 SDK** or later (项目使用 .NET 8，与 .NET MAUI 兼容)
-- **.NET MAUI workload** installed
-- **Android SDK** with API 34
-- **ADB** (Android Debug Bridge) for deployment
-
-### Install .NET MAUI Workload (if not installed)
-
-```bash
-dotnet workload install maui-android
-```
-
-Or via Visual Studio Installer: modify installation, check ".NET MAUI" workload.
-
-## Build Instructions
-
-### Option 1: Visual Studio (Recommended)
-
-1. Open `HeartRateBroadcaster.csproj` in Visual Studio 2022
-2. Set build configuration: `Release | Any CPU`
-3. Select target framework: `net8.0-android`
-4. Build → Build Solution (Ctrl+Shift+B)
-5. Output APK: `bin/Release/net8.0-android/com.oppo.hrbroadcast-Signed.apk`
-
-### Option 2: Command Line
-
-```bash
-# Restore packages
+  HeartRateBroadcaster.csproj          # Project file
+  MauiProgram.cs                       # MAUI app entry
+  MainPage.xaml / .xaml.cs             # Main UI (toggle + HR display)
+  Platforms/Android/
+    AndroidManifest.xml                # Permission declarations
+    MainActivity.cs                    # Entry Activity + permission request
+    MainApplication.cs                 # MAUI Application
+    Services/
+      HeartRateService.cs              # Foreground service + sensor reading
+      BleHrAdvertiserService.cs        # BLE GATT peripheral broadcasting
+BLE Service Details
+Item	UUID
+Heart Rate Service	0000180D-0000-1000-8000-00805F9B34FB
+Heart Rate Measurement	00002A37-0000-1000-8000-00805F9B34FB
+Body Sensor Location	00002A38-0000-1000-8000-00805F9B34FB (value = 0x02 / Wrist)
+CCCD Descriptor	00002902-0000-1000-8000-00805F9B34FB
+Data format: UINT8 (1 byte BPM) + Sensor Contact Detected flag
+Building
+Prerequisites
+•Visual Studio 2022 with .NET MAUI workload
+•Android SDK Platform 30+
+•ADB (Android Debug Bridge)
+Command Line
+# Restore dependencies
 dotnet restore HeartRateBroadcaster.csproj
 
-# Build Release APK for armeabi-v7a
+# Build Release APK
 dotnet publish HeartRateBroadcaster.csproj \
-  -f net8.0-android \
+  -f net10.0-android \
   -c Release \
-  -p:AndroidPackageFormat=apk \
   -p:RuntimeIdentifier=android-arm
-
-# Output location:
-# bin/Release/net8.0-android/android-arm/publish/com.oppo.hrbroadcast-Signed.apk
-```
-
-## ADB Installation
-
-### Connect to OPPO Watch X via ADB
-
-```bash
-# 1. Enable Developer Options on watch:
-#    Settings > System > About > Tap "Build Number" 7 times
-#    Settings > System > Developer Options > Enable "ADB Debugging"
-
-# 2. Connect via WiFi (recommended for daily use):
-#    Settings > WLAN > Click connected network > get IP address
-adb connect <WATCH_IP_ADDRESS>:5555
-
-# Or connect via USB cable
-
-# 3. Verify connection
+Output: bin/Release/net10.0-android/android-arm/publish/com.oppo.hrbroadcast-Signed.apk
+Deployment
+Connect ADB
+OPPO Watch X has no USB debug port. Use WiFi ADB:
+# On watch: Settings → About → Tap Build Number 7x → Developer Options → Enable WiFi Debug
+# Note the watch IP and port
+adb connect <WATCH_IP>:5555
 adb devices
-# Output: <device_id>    device
-
-# 4. Install APK
-adb install -r "bin/Release/net8.0-android/com.oppo.hrbroadcast-Signed.apk"
-
-# 5. Launch app
+Install APK
+adb install -r "bin/Release/net10.0-android/android-arm/publish/com.oppo.hrbroadcast-Signed.apk"
+Launch App
 adb shell am start -n com.oppo.hrbroadcast/crc64060ca0a0331b2a80.MainActivity
-
-# 6. View logs
-adb logcat -s HeartRateService BleHrAdvertiser *:S
-```
-
-### Grant Permissions
-
-First launch will request permissions. If needed, grant manually:
-
-```bash
+Grant Permissions (if not prompted)
+adb shell pm grant com.oppo.hrbroadcast android.permission.BODY_SENSORS
 adb shell pm grant com.oppo.hrbroadcast android.permission.BLUETOOTH_ADVERTISE
 adb shell pm grant com.oppo.hrbroadcast android.permission.BLUETOOTH_CONNECT
 adb shell pm grant com.oppo.hrbroadcast android.permission.ACCESS_FINE_LOCATION
-adb shell pm grant com.oppo.hrbroadcast android.permission.BODY_SENSORS
-```
+Usage
+1.Open the HR Broadcast app on your watch
+2.Toggle the switch to ON
+3.The app automatically:
+–Starts foreground service
+–Activates the heart rate sensor
+–Begins BLE advertising
+4.On your receiving device (phone, bike computer), open a sports app and search for HR devices
+5.Find HR Broadcast, connect, and view real-time heart rate
+6.Toggle OFF to stop broadcasting
+Viewing Logs
+# Filter app logs
+adb logcat -s HeartRateService BleHrAdvertiser *:S
 
-## Usage
-
-1. Open app on watch - you will see "Ready" status and a switch
-2. Toggle the switch to **ON**
-3. App will:
-   - Start foreground service (notification appears)
-   - Activate heart rate sensor
-   - Begin BLE advertising with standard HR service UUID `0000180D-0000-1000-8000-00805f9b34fb`
-4. Any BLE Central device (phone, bike computer, etc.) can discover and receive HR data
-5. Toggle OFF to stop broadcasting and release sensor
-
-## BLE Service Details
-
-| Property | Value |
-|----------|-------|
-| Service UUID | `0000180D-0000-1000-8000-00805f9b34fb` |
-| Characteristic UUID | `00002A37-0000-1000-8000-00805f9b34fb` |
-| Body Sensor Location | Wrist (value: 0x02) |
-| Data Format | UINT8, Sensor contact detected |
-| Advertisement | Connectable, includes device name + HR service UUID |
-
-### Heart Rate Data Packet Format (Bluetooth SIG Standard)
-
-```
-Byte 0: Flags (0x06)
-        - bit 0: 0 = UINT8 heart rate
-        - bit 1-2: 1 = Sensor contact supported and detected
-Byte 1: Heart Rate Value (BPM), 0-255
-```
-
-## Troubleshooting
-
-### App crashes on launch
-```bash
-# Check logs for exception details
-adb logcat -d | grep -i "hrbroadcast\|exception\|fatal"
-```
-
-### BLE advertising not starting
-- Verify Bluetooth is enabled on watch: `adb shell settings get global bluetooth_on` should return `1`
-- Check if advertiser is supported: `adb shell dumpsys bluetooth_manager | grep -i "le advertiser"`
-- Some devices require Location services: `adb shell settings put secure location_mode 3`
-
-### Heart rate sensor not found
-```bash
-# List available sensors
-adb shell dumpsys sensorservice | grep -i "heart"
-```
-- If no heart rate sensor is listed, the watch may use a proprietary API
-- The app includes fallback logic for testing (simulated data mode)
-
-### Background service killed
-- Disable battery optimization for the app
-- Settings > Battery > App Battery Management > HR Broadcast > Allow background activity
-
-## Architecture Notes
-
-### Foreground Service
-The app uses Android `ForegroundService` with type `health` to ensure continuous operation. A persistent notification is required by Android 8+ for foreground services.
-
-### BLE Peripheral Mode
-The watch acts as a GATT Server, not a client. This is the same mode used by heart rate chest straps (e.g., Polar H10).
-
-### Sensor Reading
-Uses standard Android `SensorManager` with `TYPE_HEART_RATE`. The sensor delivers events at `SENSOR_DELAY_NORMAL` frequency (typically 1Hz for HR sensors).
-
-### Wake Lock
-A partial wake lock is held during broadcasting to prevent CPU sleep from interrupting BLE advertising.
-
-## Technical Specifications
-
-| Item | Detail |
-|------|--------|
-| Target Framework | .NET 8.0-android |
-| Minimum Android | API 28 (Android 9) |
-| Target Android | API 34 (Android 14) |
-| CPU Architecture | armeabi-v7a (android-arm) |
-| BLE Version | 4.2+ (LE Advertising required) |
-| Foreground Service | Type: Health |
-
-## License
-
-MIT License - Free for personal use.
+# All logs
+adb logcat | grep "HRBroadcast"
+Troubleshooting
+Heart rate shows “–”
+•Verify BODY_SENSORS permission is granted
+•Some ColorOS versions use non-standard HR sensors; check adb logcat for sensor list
+•When sensor is unavailable, the app auto-switches to simulation mode (60-120 BPM)
+BLE device not discoverable
+•Ensure Bluetooth is enabled on the watch
+•Ensure the receiver supports BLE Heart Rate
+•Some devices need 5-10 seconds to discover the broadcast
+Background service killed
+•ColorOS: Settings → Battery → App Power Management → HR Broadcast → Allow background
+•Or lock the app in recent tasks
+Receiver cannot connect
+•This app acts as a Peripheral; the receiver must be a Central
+•Ensure the receiver supports standard BLE Heart Rate Service (0x180D)
+•Use nRF Connect to test connectivity
+Debug Flow
+Open app → Toggle ON → Check adb logcat
+    ↓
+Shows "Heart rate sensor found"?
+    ↓ Yes
+Shows "Advertising started successfully"?
+    ↓ Yes
+Scan with nRF Connect, see "HR Broadcast"?
+    ↓ Yes
+Receive Heart Rate data after connecting?
+    ↓ Yes
+✅ Ready to use with sports apps
+License
+MIT License - Free to use and modify.
+This is a personal developer tool and is not affiliated with OPPO.
