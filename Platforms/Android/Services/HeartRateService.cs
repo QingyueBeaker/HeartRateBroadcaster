@@ -93,9 +93,10 @@ public class HeartRateService : Service, ISensorEventListener
             var channel = new NotificationChannel(
                 channelId,
                 "Heart Rate Broadcast",
-                NotificationImportance.Low)
+                NotificationImportance.High)  // 改 High
             {
-                Description = "Broadcasting heart rate via BLE"
+                Description = "Broadcasting heart rate via BLE",
+                LockscreenVisibility = NotificationVisibility.Public
             };
             var notificationManager = GetSystemService(NotificationService) as NotificationManager;
             notificationManager?.CreateNotificationChannel(channel);
@@ -112,10 +113,11 @@ public class HeartRateService : Service, ISensorEventListener
         }
 
         var notification = builder
-            .SetContentTitle("HR Broadcast")
+            .SetContentTitle("HR Broadcast Running")
             .SetContentText("Broadcasting heart rate...")
             .SetSmallIcon(global::Android.Resource.Drawable.IcMenuInfoDetails)
             .SetOngoing(true)
+            .SetVisibility(NotificationVisibility.Public)
             .Build();
 
         StartForeground(1001, notification);
@@ -195,13 +197,17 @@ public class HeartRateService : Service, ISensorEventListener
         {
             _currentHeartRate = (int)e.Values[0];
 
-            // Broadcast HR update to UI
             var intent = new Intent(ActionHeartRateUpdated);
             intent.PutExtra("heart_rate", _currentHeartRate);
             SendBroadcast(intent);
 
-            // Notify BLE service of new HR value
             _bleService?.UpdateHeartRateValue(_currentHeartRate);
+
+            // 定期刷新前台通知（ColorOS 息屏存活关键）
+            if (_currentHeartRate % 5 == 0)
+            {
+                StartForegroundService();
+            }
         }
     }
 

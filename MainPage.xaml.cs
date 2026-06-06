@@ -21,8 +21,25 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
         RegisterReceivers();
+        RequestBatteryWhitelist(); 
     }
 
+    private void RequestBatteryWhitelist()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+        {
+            var ctx = Android.App.Application.Context;
+            var pm = ctx.GetSystemService(Android.Content.Context.PowerService) as Android.OS.PowerManager;
+            var pkg = ctx.PackageName;
+            if (pm != null && !pm.IsIgnoringBatteryOptimizations(pkg))
+            {
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations);
+                intent.SetData(Android.Net.Uri.Parse("package:" + pkg));
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                ctx.StartActivity(intent);
+            }
+        }
+    }
     protected override void OnDisappearing()
     {
         base.OnDisappearing();

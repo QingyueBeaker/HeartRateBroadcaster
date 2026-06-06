@@ -27,6 +27,8 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
     <uses-feature android:name="android.hardware.sensor.heart_rate" android:required="true" />
 
+	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+	
     <application
         android:allowBackup="false"
         android:icon="@mipmap/appicon"
